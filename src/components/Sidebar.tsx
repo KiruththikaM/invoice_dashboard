@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, FileText, Settings, Users, CreditCard } from 'lucide-react';
+import { Home, FileText } from 'lucide-react';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -7,9 +7,6 @@ const Sidebar = () => {
   const navigation = [
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Invoices', href: '/invoices', icon: FileText },
-    { name: 'Customers', href: '/customers', icon: Users },
-    { name: 'Payments', href: '/payments', icon: CreditCard },
-    { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
   return (

@@ -19,7 +19,7 @@ const mockInvoices: InvoiceItem[] = [
     amount: 755.00,
     date: '2030-06-02',
     status: 'Paid',
-    fileUrl: 'https://app.invoicesimple.com/images/content/en/1-invoice-generator-sample.png',
+    fileUrl: 'https://www.billdu.com/wp-content/uploads/2023/04/UK-invoice-template_2.png',
     fileType: 'image'
   },
   {
@@ -28,7 +28,7 @@ const mockInvoices: InvoiceItem[] = [
     amount: 1500.00,
     date: '2023-10-15',
     status: 'Paid',
-    fileUrl: 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf',
+    fileUrl: 'https://www.image2url.com/r2/default/documents/1787647917780-45c3835c-61e0-44b8-afc5-ea34cc4926bc.pdf',
     fileType: 'pdf'
   },
   {
@@ -37,7 +37,7 @@ const mockInvoices: InvoiceItem[] = [
     amount: 2350.50,
     date: '2023-10-18',
     status: 'Pending',
-    fileUrl: '/sample-invoice.png',
+    fileUrl: 'https://res.cloudinary.com/dja3z8nt6/image/upload/v1770406352/wp-migration/external-11dcf6ab09fb.png',
     fileType: 'image'
   },
   {
@@ -46,7 +46,7 @@ const mockInvoices: InvoiceItem[] = [
     amount: 450.00,
     date: '2023-10-20',
     status: 'Overdue',
-    fileUrl: 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf',
+    fileUrl: 'https://www.image2url.com/r2/default/documents/1787648242473-44393270-73b1-436a-aede-c103ff6a900e.pdf',
     fileType: 'pdf'
   },
   {
@@ -55,7 +55,7 @@ const mockInvoices: InvoiceItem[] = [
     amount: 3200.00,
     date: '2023-10-22',
     status: 'Draft',
-    fileUrl: '/sample-invoice.png',
+    fileUrl: 'https://static.vecteezy.com/system/resources/previews/010/938/669/non_2x/professional-business-invoice-template-invoice-for-your-company-business-print-ready-invoice-template-pro-vector.jpg',
     fileType: 'image'
   },
 ];
@@ -63,6 +63,34 @@ const mockInvoices: InvoiceItem[] = [
 const Invoices = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFile, setSelectedFile] = useState<{ url: string; type: 'pdf' | 'image'; title: string } | null>(null);
+
+  const handleDownload = async (e: React.MouseEvent, invoice: InvoiceItem) => {
+    e.stopPropagation();
+    try {
+      const response = await fetch(invoice.fileUrl);
+      if (!response.ok) throw new Error('Network response was not ok');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const fileName = invoice.fileUrl.split('/').pop() || `${invoice.id}.${invoice.fileType}`;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download failed, using fallback', error);
+      const link = document.createElement('a');
+      link.href = invoice.fileUrl;
+      const fileName = invoice.fileUrl.split('/').pop() || `${invoice.id}.${invoice.fileType}`;
+      link.setAttribute('download', fileName);
+      link.target = "_blank";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -178,7 +206,13 @@ const Invoices = () => {
                       >
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button className="p-1.5 hover:bg-gray-100 hover:text-indigo-600 rounded-lg transition-colors" title="Download"><Download className="h-4 w-4" /></button>
+                      <button 
+                        onClick={(e) => handleDownload(e, invoice)}
+                        className="p-1.5 hover:bg-gray-100 hover:text-indigo-600 rounded-lg transition-colors" 
+                        title="Download"
+                      >
+                        <Download className="h-4 w-4" />
+                      </button>
                       <button className="p-1.5 hover:bg-gray-100 hover:text-indigo-600 rounded-lg transition-colors" title="Edit details"><Edit className="h-4 w-4" /></button>
                       <button className="p-1.5 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors" title="Delete"><Trash2 className="h-4 w-4" /></button>
                     </div>
