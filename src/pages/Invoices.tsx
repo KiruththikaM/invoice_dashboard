@@ -19,7 +19,7 @@ const mockInvoices: InvoiceItem[] = [
     amount: 755.00,
     date: '2030-06-02',
     status: 'Paid',
-    fileUrl: 'https://www.billdu.com/wp-content/uploads/2023/04/UK-invoice-template_2.png',
+    fileUrl: 'https://cdn.venngage.com/template/thumbnail/small/5b650276-1deb-4fa5-adee-a0b8b935cb37.webp',
     fileType: 'image'
   },
   {
@@ -206,9 +206,9 @@ const Invoices = () => {
                       >
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button 
+                      <button
                         onClick={(e) => handleDownload(e, invoice)}
-                        className="p-1.5 hover:bg-gray-100 hover:text-indigo-600 rounded-lg transition-colors" 
+                        className="p-1.5 hover:bg-gray-100 hover:text-indigo-600 rounded-lg transition-colors"
                         title="Download"
                       >
                         <Download className="h-4 w-4" />
