@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Search, Plus, Download, Edit, Trash2, Eye, FileText, Image as ImageIcon } from 'lucide-react';
+import { Search, Plus, Download, Edit, Trash2, Eye, FileText, Image as ImageIcon, Layers } from 'lucide-react';
 import FileViewerModal from '../components/FileViewerModal';
+import { mergeFilesToPdfUrl } from '../utils/pdfMerger';
 
 interface InvoiceItem {
   id: string;
@@ -19,7 +20,7 @@ const mockInvoices: InvoiceItem[] = [
     amount: 755.00,
     date: '2030-06-02',
     status: 'Paid',
-    fileUrl: 'https://cdn.venngage.com/template/thumbnail/small/5b650276-1deb-4fa5-adee-a0b8b935cb37.webp',
+    fileUrl: 'https://eforms.com/images/2016/10/graphic-design-invoice-template.png',
     fileType: 'image'
   },
   {
@@ -64,6 +65,10 @@ const Invoices = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFile, setSelectedFile] = useState<{ url: string; type: 'pdf' | 'image'; title: string } | null>(null);
 
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isMerging, setIsMerging] = useState(false);
+
   const handleDownload = async (e: React.MouseEvent, invoice: InvoiceItem) => {
     e.stopPropagation();
     try {
@@ -107,6 +112,46 @@ const Invoices = () => {
     invoice.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedIds(filteredInvoices.map(inv => inv.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+
+  const handleMergeAndPreview = async () => {
+    if (selectedIds.length === 0) return;
+    setIsMerging(true);
+
+    const itemsToMerge = mockInvoices
+      .filter(inv => selectedIds.includes(inv.id))
+      .map(inv => ({ url: inv.fileUrl, type: inv.fileType }));
+
+    try {
+      const mergedPdfUrl = await mergeFilesToPdfUrl(itemsToMerge);
+      setSelectedFile({
+        url: mergedPdfUrl,
+        type: 'pdf',
+        title: `Merged Invoices (${selectedIds.length} items)`
+      });
+    } catch (error) {
+      console.error("Merge failed", error);
+      alert("Failed to merge files. Please check CORS or network connection.");
+    } finally {
+      setIsMerging(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -114,10 +159,24 @@ const Invoices = () => {
           <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Invoices</h2>
           <p className="text-sm text-gray-500 mt-1">Manage your invoices, view documents, or edit receipt images</p>
         </div>
-        <button className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl transition-all font-medium shadow-sm shadow-indigo-200 hover:shadow-md hover:-translate-y-0.5">
-          <Plus className="h-4 w-4" />
-          Create Invoice
-        </button>
+
+        <div className="flex items-center gap-3">
+          {selectedIds.length > 0 && (
+            <button
+              onClick={handleMergeAndPreview}
+              disabled={isMerging}
+              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl transition-all font-medium shadow-sm shadow-emerald-200 hover:shadow-md hover:-translate-y-0.5 disabled:opacity-50"
+            >
+              <Layers className="h-4 w-4" />
+              {isMerging ? 'Merging...' : `Merge Selected (${selectedIds.length})`}
+            </button>
+          )}
+
+          <button className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl transition-all font-medium shadow-sm shadow-indigo-200 hover:shadow-md hover:-translate-y-0.5">
+            <Plus className="h-4 w-4" />
+            Create Invoice
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
@@ -140,6 +199,14 @@ const Invoices = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                <th scope="col" className="px-4 py-4 text-left w-10">
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                    onChange={handleSelectAll}
+                    checked={selectedIds.length === filteredInvoices.length && filteredInvoices.length > 0}
+                  />
+                </th>
                 <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Invoice ID
                 </th>
@@ -170,6 +237,14 @@ const Invoices = () => {
                   className="hover:bg-indigo-50/40 cursor-pointer transition-colors group"
                   onClick={() => setSelectedFile({ url: invoice.fileUrl, type: invoice.fileType, title: `${invoice.id} - ${invoice.client}` })}
                 >
+                  <td className="px-4 py-5 whitespace-nowrap" onClick={(e) => handleSelectOne(invoice.id, e)}>
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                      checked={selectedIds.includes(invoice.id)}
+                      onChange={() => { }}
+                    />
+                  </td>
                   <td className="px-6 py-5 whitespace-nowrap text-sm font-medium text-gray-900">
                     {invoice.id}
                   </td>
@@ -231,7 +306,6 @@ const Invoices = () => {
         </div>
       </div>
 
-
       {selectedFile && (
         <FileViewerModal
           fileUrl={selectedFile.url}
@@ -245,5 +319,3 @@ const Invoices = () => {
 };
 
 export default Invoices;
-
-

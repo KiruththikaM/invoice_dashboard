@@ -15,6 +15,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "konva": "^10.3.0",
     "lucide-react": "^1.31.0",
+    "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^3.4.120",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
